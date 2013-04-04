@@ -25,12 +25,14 @@ func handle(conn net.Conn) {
 			return
 		}
 		txn = strings.TrimSpace(txn)
+
 		cmd, err := reader.ReadString(' ')
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		cmd = strings.TrimSpace(cmd)
+
 		// TODO: handle 0 datalen -- loop on bytes until non-digit?
 		dataLenString, err := reader.ReadString(' ')
 		if err != nil {
