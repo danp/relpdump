@@ -7,6 +7,7 @@ import "bufio"
 import "os"
 import "strconv"
 import "strings"
+import "io"
 
 // 0: new
 // 1: open
@@ -14,7 +15,6 @@ func handle(conn net.Conn) {
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
-	dataRead := 0
 
 	state := 0
 
@@ -46,14 +46,10 @@ func handle(conn net.Conn) {
 		}
 
 		dataBytes := make([]byte, dataLen)
-		dataRead = 0
-		for dataRead < dataLen {
-			n, err := reader.Read(dataBytes[dataRead:])
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			dataRead += n
+		_, err = io.ReadFull(reader, dataBytes)
+		if err != nil {
+			log.Println(err)
+			return
 		}
 
 		switch cmd {
