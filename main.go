@@ -8,6 +8,8 @@ import "os"
 import "strconv"
 import "strings"
 
+var errorLog = log.New(os.Stderr, "", log.LstdFlags)
+
 // 0: new
 // 1: open
 func handle(conn net.Conn) {
@@ -21,24 +23,25 @@ func handle(conn net.Conn) {
 	for {
 		txn, err := reader.ReadString(' ')
 		if err != nil {
-			log.Println(err)
+			errorLog.Println(err)
 			return
 		}
 		txn = strings.TrimSpace(txn)
 		cmd, err := reader.ReadString(' ')
 		if err != nil {
-			log.Println(err)
+			errorLog.Println(err)
 			return
 		}
 		cmd = strings.TrimSpace(cmd)
+		// TODO: handle 0 datalen -- loop on bytes until non-digit?
 		dataLenString, err := reader.ReadString(' ')
 		if err != nil {
-			log.Println(err)
+			errorLog.Println(err)
 			return
 		}
 		dataLen, err := strconv.Atoi(strings.TrimSpace(dataLenString))
 		if err != nil {
-			log.Println(err)
+			errorLog.Println(err)
 			return
 		}
 		log.Println("txn", txn, "cmd", cmd, "dataLen", dataLen)
@@ -48,7 +51,7 @@ func handle(conn net.Conn) {
 		for dataRead < dataLen {
 			n, err := reader.Read(dataBytes[dataRead:])
 			if err != nil {
-				log.Println(err)
+				errorLog.Println(err)
 				return
 			}
 			dataRead += n
@@ -87,7 +90,7 @@ func handle(conn net.Conn) {
 		case "open":
 			_, err := conn.Write([]byte(fmt.Sprintf("%s rsp 92 200 OK\nrelp_version=0\nrelp_software=librelp,1.0.0,http://librelp.adiscon.com\ncommands=syslog\n", txn)))
 			if err != nil {
-				log.Println(err)
+				errorLog.Println(err)
 				return
 			}
 			state = 1
@@ -96,13 +99,13 @@ func handle(conn net.Conn) {
 			if state != 1 {
 				_, err := conn.Write([]byte(fmt.Sprintf("%s rsp 7 500 ERR\n", txn)))
 				if err != nil {
-					log.Println(err)
+					errorLog.Println(err)
 				}
 				return			
 			} else {
 				_, err := conn.Write([]byte(fmt.Sprintf("%s rsp 6 200 OK\n", txn)))
 				if err != nil {
-					log.Println(err)
+					errorLog.Println(err)
 					return
 				}
 			}
@@ -118,13 +121,13 @@ func main() {
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	if err != nil {
-		log.Fatal(err)
+		errorLog.Fatal(err)
 	}
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Println(err)
+			errorLog.Println(err)
 			continue
 		}
 		go handle(conn)
