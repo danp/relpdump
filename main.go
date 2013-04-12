@@ -1,13 +1,15 @@
 package main
 
-import "net"
-import "fmt"
-import "log"
-import "bufio"
-import "os"
-import "strconv"
-import "strings"
-import "io"
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"log"
+	"net"
+	"os"
+	"strconv"
+	"strings"
+)
 
 // 0: new
 // 1: open
